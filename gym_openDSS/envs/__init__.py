@@ -1,1 +1,1 @@
-from gym_openDSS.envs.openDSS_env import OpenDSSEnv
+from gym_openDSS.envs.openDSSenv import openDSSenv

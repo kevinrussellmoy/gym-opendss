@@ -5,5 +5,14 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 
 
-class openDSSEnv(gym.Env):
+class openDSSenv(gym.Env):
     metadata = {'render.modes': ['human']}
+
+    def __init__(self):
+        print('Env initialized')
+
+    def step(self):
+        print('Step success')
+
+    def reset(self):
+        print('env reset')
