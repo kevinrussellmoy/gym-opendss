@@ -24,13 +24,13 @@ class openDSSenv(gym.Env):
         self.loadNames = self.DSSCircuit.Loads.AllNames
         self.VoltageMag = self.DSSCircuit.AllBusVmagPu
 
-        n_actions = 2
+        n_actions = 4
         self.action_space = spaces.Discrete(n_actions)
         self.observation_space = spaces.Box(low=0, high=2, shape=(len(self.VoltageMag), 1), dtype=np.float32)
 
         print('Env initialized')
 
-    def step(self):
+    def step(self, action):
         print('Step success')
 
     def reset(self):
