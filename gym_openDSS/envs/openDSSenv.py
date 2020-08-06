@@ -2,7 +2,8 @@ import gym
 import win32com.client
 from gym import error, spaces, utils
 import numpy as np
-
+from gym_openDSS.envs.bus13_state_reward import *
+from gym_openDSS.envs.generate_state_space import *
 from gym.utils import seeding
 
 
@@ -21,17 +22,64 @@ class openDSSenv(gym.Env):
         self.DSSText.Command = "Disable regcontrol.Reg2"
         self.DSSText.Command = "Disable regcontrol.Reg3"
 
+        # Initially disable both capacitor banks and set both to 1500 KVAR rating
+        capNames = self.DSSCircuit.Capacitors.AllNames
+        for cap in capNames:
+            self.DSSCircuit.SetActiveElement("Capacitor." + cap)
+            self.DSSCircuit.ActiveDSSElement.Properties("kVAR").Val = 1500
+        self.DSSCircuit.Capacitors.Name = "Cap1"
+        self.DSSCircuit.Capacitors.States = (0,)
+        self.DSSCircuit.Capacitors.Name = "Cap2"
+        self.DSSCircuit.Capacitors.States = (0,)
+
         self.loadNames = self.DSSCircuit.Loads.AllNames
         self.VoltageMag = self.DSSCircuit.AllBusVmagPu
 
-        n_actions = 2
+        # Set up action and observation space variables
+        n_actions = 4
         self.action_space = spaces.Discrete(n_actions)
         self.observation_space = spaces.Box(low=0, high=2, shape=(len(self.VoltageMag), 1), dtype=np.float32)
 
         print('Env initialized')
 
-    def step(self):
+    def step(self, action):
+        if action == 0:
+            # Both capacitors off:
+            self.DSSCircuit.Capacitors.Name = "Cap1"
+            self.DSSCircuit.Capacitors.States = (0,)
+            self.DSSCircuit.Capacitors.Name = "Cap2"
+            self.DSSCircuit.Capacitors.States = (0,)
+        elif action == 1:
+            # Capacitor 1 on, Capacitor 2 off:
+            self.DSSCircuit.Capacitors.Name = "Cap1"
+            self.DSSCircuit.Capacitors.States = (1,)
+            self.DSSCircuit.Capacitors.Name = "Cap2"
+            self.DSSCircuit.Capacitors.States = (0,)
+        elif action == 2:
+            # Capacitor 1 off, Capacitor 2 on:
+            self.DSSCircuit.Capacitors.Name = "Cap1"
+            self.DSSCircuit.Capacitors.States = (0,)
+            self.DSSCircuit.Capacitors.Name = "Cap2"
+            self.DSSCircuit.Capacitors.States = (1,)
+        elif action == 3:
+            # Both capacitors on:
+            self.DSSCircuit.Capacitors.Name = "Cap1"
+            self.DSSCircuit.Capacitors.States = (1,)
+            self.DSSCircuit.Capacitors.Name = "Cap2"
+            self.DSSCircuit.Capacitors.States = (1,)
+        else:
+            print("Invalid action " + str(action) + ", action in range [0 3] expected")
+
         print('Step success')
+        self.DSSSolution.Solve()  # Solve Circuit
+        observation = get_state(self.DSSCircuit)
+        reward = calc_reward(observation)
+        done = 0
+        info = {}
+
+        loadKws = load_states(self.loadNames, self.DSSCircuit, self.DSSSolution)
+
+        return observation, reward, done, info
 
     def reset(self):
         print('env reset')
