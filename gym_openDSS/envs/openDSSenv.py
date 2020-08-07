@@ -4,7 +4,7 @@ from gym import spaces
 import numpy as np
 
 from gym_openDSS.envs.bus13_state_reward import *
-from gym_openDSS.envs.generate_state_space import *
+from gym_openDSS.envs.find_load_config import *
 from gym.utils import seeding
 
 # Upper and lower bounds of voltage zones:
@@ -94,11 +94,8 @@ class openDSSenv(gym.Env):
         
         return observation, reward, done, info
 
-        return obs, reward
-
     def reset(self):
-        print('env reset')
-        
+        print('resetting environment...')
         print("Set new loads")
         # Set new loads
         # TODO: Handle loads as an input
@@ -110,6 +107,6 @@ class openDSSenv(gym.Env):
             self.DSSCircuit.ActiveDSSElement.Properties("kW").Val = loadKws[loadnum]
         # Get state observations from initial default load configuration
         self.DSSSolution.solve()
-
-        obs = np.array(self.DSSCircuit.AllBusVmagPu)
+        print("\nreset complete\n")
+        obs = get_state(self.DSSCircuit)
         return obs

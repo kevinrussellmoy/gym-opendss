@@ -6,14 +6,9 @@ import win32com.client
 import pandas as pd
 import os
 import numpy as np
-from generate_state_space import load_states
+from gym_openDSS.envs.generate_new_state import load_states
 
 currentDirectory = os.getcwd()  # Will switch to OpenDSS directory after OpenDSS Object is instantiated!
-
-MAX_NUM_CONFIG = 30
-MIN_BUS_VOLT = 0.8
-MAX_BUS_VOLT = 1.2
-
 
 def new_load_config():
     # Generate a new load configuration

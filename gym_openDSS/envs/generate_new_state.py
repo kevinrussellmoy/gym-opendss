@@ -45,12 +45,8 @@ def load_states(loadNames, DSSCircuit, DSSSolution, min_load=0.5, max_load=3):
 
         # Retrieve all voltage magnitudes from all phases of all buses
         VoltageMagCapOff = DSSCircuit.AllBusVmagPu
-
         maxVCapOff = max(VoltageMagCapOff)
         minVCapOff = min(VoltageMagCapOff)
-
-        print("Maximum Voltage is: " + str(maxVCapOff))
-        print("Minimum Voltage is: " + str(minVCapOff))
 
         # ----- DETERMINING STATE SPACE -----
         # print("Enabling Capacitor Banks")
@@ -65,12 +61,8 @@ def load_states(loadNames, DSSCircuit, DSSSolution, min_load=0.5, max_load=3):
 
         # Retrieve all voltage magnitudes from all phases of all buses
         VoltageMagCapOn = DSSCircuit.AllBusVmagPu
-
         maxVCapOn = max(VoltageMagCapOn)
         minVCapOn = min(VoltageMagCapOn)
-
-        print("Maximum Voltage is: " + str(maxVCapOn))
-        print("Minimum Voltage is: " + str(minVCapOn))
 
         if (max(maxVCapOff, maxVCapOn, minVCapOff, minVCapOn) <= MAX_BUS_VOLT) & \
                 (min(maxVCapOff, maxVCapOn, minVCapOff, minVCapOn) >= MIN_BUS_VOLT):
