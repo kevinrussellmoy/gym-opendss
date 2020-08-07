@@ -30,10 +30,10 @@ def load_states(loadNames, DSSCircuit, DSSSolution, min_load=0.5, max_load=3):
         scale_up(DSSCircuit, randScale)
 
         # Initially disable both capacitor banks and set both to 1500 KVAR rating
-        # capNames = DSSCircuit.Capacitors.AllNames
-        # for cap in capNames:
-        #     DSSCircuit.SetActiveElement("Capacitor." + cap)
-        #     DSSCircuit.ActiveDSSElement.Properties("kVAR").Val = 1500
+        capNames = DSSCircuit.Capacitors.AllNames
+        for cap in capNames:
+            DSSCircuit.SetActiveElement("Capacitor." + cap)
+            DSSCircuit.ActiveDSSElement.Properties("kVAR").Val = 1500
 
         DSSCircuit.Capacitors.Name = "Cap1"
         DSSCircuit.Capacitors.States = (0,)

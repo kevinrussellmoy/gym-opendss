@@ -1,10 +1,9 @@
 import gym
 import win32com.client
-from gym import error, spaces, utils
+from gym import spaces
 import numpy as np
 
-from gym.utils import seeding
-from find_load_config import new_load_config
+from gym_openDSS.envs.find_load_config import new_load_config
 
 # Upper and lower bounds of voltage zones:
 ZONE2_UB = 1.10
@@ -101,24 +100,23 @@ class openDSSenv(gym.Env):
 
         reward = num_zone1 * ZONE1_PENALTY + num_zone2 * ZONE2_PENALTY
 
-        print("Set new loads")
-
-        # Set new loads
-        # TODO: why doesn't this work as well as in smart-rl-mg??
-        # loadKws = load_states(self.loadNames, self.DSSCircuit, self.DSSSolution)
-        loadKws = new_load_config()
-        print("New loads obtained")
-        for loadnum in range(np.size(self.loadNames)):
-            self.DSSCircuit.SetActiveElement("Load." + self.loadNames[loadnum])
-            # Set load with new loadKws
-            self.DSSCircuit.ActiveDSSElement.Properties("kW").Val = loadKws[loadnum]
-
         print('Step success')
 
         return obs, reward
 
     def reset(self):
         print('env reset')
+
+        print("Set new loads")
+        # Set new loads
+        # TODO: Handle loads as an input
+        loadKws = new_load_config()
+        print("New loads obtained")
+        for loadnum in range(np.size(self.loadNames)):
+            self.DSSCircuit.SetActiveElement("Load." + self.loadNames[loadnum])
+            # Set load with new loadKws
+            self.DSSCircuit.ActiveDSSElement.Properties("kW").Val = loadKws[loadnum]
         # Get state observations from initial default load configuration
+        self.DSSSolution.solve()
         obs = np.array(self.DSSCircuit.AllBusVmagPu)
         return obs

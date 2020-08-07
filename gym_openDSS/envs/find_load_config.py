@@ -23,7 +23,6 @@ def new_load_config():
     except:
         print("Unable to start the OpenDSS Engine")
         raise SystemExit
-    print("OpenDSS Engine started\n")
 
     # Set up the Text, Circuit, and Solution Interfaces
     DSSText = DSSObj.Text
