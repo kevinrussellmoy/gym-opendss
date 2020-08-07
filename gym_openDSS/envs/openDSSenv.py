@@ -83,3 +83,6 @@ class openDSSenv(gym.Env):
 
     def reset(self):
         print('env reset')
+        # Get state observations from initial default load configuration
+        obs = np.array(self.DSSCircuit.AllBusVmagPu)
+        return obs
