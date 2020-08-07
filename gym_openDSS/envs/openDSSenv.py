@@ -4,6 +4,7 @@ from gym import error, spaces, utils
 import numpy as np
 
 from gym.utils import seeding
+from find_load_config import new_load_config
 
 # Upper and lower bounds of voltage zones:
 ZONE2_UB = 1.10
@@ -44,7 +45,7 @@ class openDSSenv(gym.Env):
         self.DSSCircuit.Capacitors.Name = "Cap2"
         self.DSSCircuit.Capacitors.States = (0,)
 
-        self.loadNames = self.DSSCircuit.Loads.AllNames
+        self.loadNames = np.array(self.DSSCircuit.Loads.AllNames)
 
         n_actions = 4
         self.action_space = spaces.Discrete(n_actions)
@@ -81,7 +82,7 @@ class openDSSenv(gym.Env):
             self.DSSCircuit.Capacitors.Name = "Cap2"
             self.DSSCircuit.Capacitors.States = (1,)
         else:
-            print("Invalid action " + str(action) + ", action in range [0 3] expected")
+            raise ValueError("Received invalid action={} which is not part of the action space".format(action))
 
         # Solve new circuit with new capacitor states
         self.DSSSolution.solve()
@@ -100,11 +101,24 @@ class openDSSenv(gym.Env):
 
         reward = num_zone1 * ZONE1_PENALTY + num_zone2 * ZONE2_PENALTY
 
+        print("Set new loads")
+
+        # Set new loads
+        # TODO: why doesn't this work as well as in smart-rl-mg??
+        # loadKws = load_states(self.loadNames, self.DSSCircuit, self.DSSSolution)
+        loadKws = new_load_config()
+        print("New loads obtained")
+        for loadnum in range(np.size(self.loadNames)):
+            self.DSSCircuit.SetActiveElement("Load." + self.loadNames[loadnum])
+            # Set load with new loadKws
+            self.DSSCircuit.ActiveDSSElement.Properties("kW").Val = loadKws[loadnum]
+
         print('Step success')
 
         return obs, reward
 
     def reset(self):
         print('env reset')
+        # Get state observations from initial default load configuration
         obs = np.array(self.DSSCircuit.AllBusVmagPu)
         return obs
