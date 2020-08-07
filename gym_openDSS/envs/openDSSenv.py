@@ -3,7 +3,9 @@ import win32com.client
 from gym import spaces
 import numpy as np
 
-from gym_openDSS.envs.find_load_config import new_load_config
+from gym_openDSS.envs.bus13_state_reward import *
+from gym_openDSS.envs.generate_state_space import *
+from gym.utils import seeding
 
 # Upper and lower bounds of voltage zones:
 ZONE2_UB = 1.10
@@ -38,14 +40,15 @@ class openDSSenv(gym.Env):
         for cap in capNames:
             self.DSSCircuit.SetActiveElement("Capacitor." + cap)
             self.DSSCircuit.ActiveDSSElement.Properties("kVAR").Val = 1500
-
         self.DSSCircuit.Capacitors.Name = "Cap1"
         self.DSSCircuit.Capacitors.States = (0,)
         self.DSSCircuit.Capacitors.Name = "Cap2"
         self.DSSCircuit.Capacitors.States = (0,)
 
-        self.loadNames = np.array(self.DSSCircuit.Loads.AllNames)
+        self.loadNames = self.DSSCircuit.Loads.AllNames
+        self.VoltageMag = self.DSSCircuit.AllBusVmagPu
 
+        # Set up action and observation space variables
         n_actions = 4
         self.action_space = spaces.Discrete(n_actions)
         self.observation_space = spaces.Box(low=0, high=2, shape=(len(self.DSSCircuit.AllBusVmagPu), 1), dtype=np.float32)
@@ -55,7 +58,6 @@ class openDSSenv(gym.Env):
     def step(self, action):
         # Execute action based on control
         # Expect action in range [0 3] for capacitor control
-        # TODO: put in its own method? idk -km
         if action == 0:
             # Both capacitors off:
             self.DSSCircuit.Capacitors.Name = "Cap1"
@@ -81,32 +83,22 @@ class openDSSenv(gym.Env):
             self.DSSCircuit.Capacitors.Name = "Cap2"
             self.DSSCircuit.Capacitors.States = (1,)
         else:
-            raise ValueError("Received invalid action={} which is not part of the action space".format(action))
-
-        # Solve new circuit with new capacitor states
-        self.DSSSolution.solve()
-
-        # Get state observations
-        obs = np.array(self.DSSCircuit.AllBusVmagPu)
-
-        # Calculate reward from states
-        # Number of buses in voltage zone 1
-        num_zone1 = np.size(np.nonzero(np.logical_and(obs >= ZONE1_UB, obs < ZONE2_UB))) \
-                    + np.size(np.nonzero(np.logical_and(obs <= ZONE1_LB, obs > ZONE2_LB)))
-
-        # Number of buses in voltage zone 2
-        num_zone2 = np.size(np.nonzero(obs >= ZONE2_UB)) \
-                    + np.size(np.nonzero(obs <= ZONE2_LB))
-
-        reward = num_zone1 * ZONE1_PENALTY + num_zone2 * ZONE2_PENALTY
+            print("Invalid action " + str(action) + ", action in range [0 3] expected")
 
         print('Step success')
+        self.DSSSolution.Solve()  # Solve Circuit
+        observation = get_state(self.DSSCircuit)
+        reward = calc_reward(observation)
+        done = 0
+        info = {}
+        
+        return observation, reward, done, info
 
         return obs, reward
 
     def reset(self):
         print('env reset')
-
+        
         print("Set new loads")
         # Set new loads
         # TODO: Handle loads as an input
@@ -118,5 +110,6 @@ class openDSSenv(gym.Env):
             self.DSSCircuit.ActiveDSSElement.Properties("kW").Val = loadKws[loadnum]
         # Get state observations from initial default load configuration
         self.DSSSolution.solve()
+
         obs = np.array(self.DSSCircuit.AllBusVmagPu)
         return obs
