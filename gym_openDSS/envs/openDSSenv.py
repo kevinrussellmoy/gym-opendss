@@ -18,7 +18,6 @@ ZONE2_LB = 0.90
 ZONE1_PENALTY = -200
 ZONE2_PENALTY = -400
 
-
 class openDSSenv(gym.Env):
     metadata = {'render.modes': ['human']}
 
@@ -52,8 +51,7 @@ class openDSSenv(gym.Env):
         # Set up action and observation space variables
         n_actions = 4
         self.action_space = spaces.Discrete(n_actions)
-        self.observation_space = spaces.Box(low=0, high=2, shape=(len(self.DSSCircuit.AllBusVmagPu)),
-                                            dtype=np.float32)
+        self.observation_space = spaces.Box(low=0, high=2, shape=(len(self.DSSCircuit.AllBusVmagPu),), dtype=np.float32)
 
         print('Env initialized')
 
@@ -91,9 +89,9 @@ class openDSSenv(gym.Env):
         self.DSSSolution.Solve()  # Solve Circuit
         observation = get_state(self.DSSCircuit)
         reward = calc_reward(observation)
-        done = 0
+        done = True
         info = {}
-
+        
         return observation, reward, done, info
 
     def reset(self):
