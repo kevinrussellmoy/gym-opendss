@@ -89,11 +89,11 @@ class openDSSenv(gym.Env):
         else:
             inval_action_message = "Invalid action " + str(action) + ", action in range [0 3] expected"
             print(inval_action_message)
-            logging.warn(inval_action_message)
+            logging.warning(inval_action_message)
 
         self.DSSSolution.Solve()  # Solve Circuit
         observation = get_state(self.DSSCircuit)
-        reward = calc_reward(observation)
+        reward = quad_reward(observation)
         done = True
         info = {}
         logging.info('Step success')
