@@ -59,7 +59,7 @@ def quad_reward(sts):
     # sts: NumPy array of voltages for each bus as the state vector
     # Returns: single floating-point number as reward
 
-    sts_loss = (PENALTY/VOLT_ZONE_WIDTH**2) * (np.maximum(abs(sts-1)-VOLT_ACC_WIDTH, 0))**2
+    sts_loss = (PENALTY/VOLT_ZONE_WIDTH**2) * (np.maximum(abs(sts-1)-VOLT_ACC_WIDTH/2, 0))**2
 
     reward = np.sum(sts_loss)
 
