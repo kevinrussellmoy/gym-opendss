@@ -116,3 +116,6 @@ class openDSSenv(gym.Env):
         logging.info("reset complete\n")
         obs = get_state(self.DSSCircuit)
         return obs
+
+    def render(self, mode='human', close=False):
+        pass
