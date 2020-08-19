@@ -60,6 +60,8 @@ class openDSSenv(gym.Env):
         print('Env initialized')
 
     def step(self, action):
+        # Obtain state before action is executed
+        observation = get_state(self.DSSCircuit)
         # Execute action based on control
         # Expect action in range [0 3] for capacitor control
         if action == 0:
@@ -92,8 +94,8 @@ class openDSSenv(gym.Env):
             logging.warning(inval_action_message)
 
         self.DSSSolution.Solve()  # Solve Circuit
-        observation = get_state(self.DSSCircuit)
-        reward = quad_reward(observation)
+        obs_post_action = get_state(self.DSSCircuit)
+        reward = quad_reward(obs_post_action)
         done = True
         info = {}
         logging.info('Step success')
