@@ -10,6 +10,7 @@ from gym_openDSS.envs.generate_new_state import load_states
 
 currentDirectory = os.getcwd()  # Will switch to OpenDSS directory after OpenDSS Object is instantiated!
 
+
 def new_load_config():
     # Generate a new load configuration
     # Instantiate the OpenDSS Object
